@@ -4,26 +4,59 @@ import heapq                # Heaps for Priority Queue
 import copy                 # For Deep Copying
 import timeit               # Timing
 
-
-# Each nodes represents a series of steps taken to arrive at a certain
-# state. This means that there might be multiple nodes for one given state
+"""
+Node Class
+----------
+Each nodes represents a series of steps taken to arrive at a certain state,
+which is recorded by the parent attribute. This means that there might be
+multiple nodes for one given state. However, there are no two nodes with
+the same state and the same parent.
+"""
 class Node: 
     def __init__(self, state, parent):
+        """
+        Creates a new Node Object
+
+        Args
+        ----
+        state : array
+            An arrangement of the stack of pancakes
+
+        parent: Node object
+            Parent of the current node
+        """
         self.state = state
         self.parent = parent    # Keeps track of the parent of each node
         self.backward_cost = 0
     
-    # The total cost is a sum of the heuristic function (forward cost) and
-    # the number of pancakes that have been flipped (backward cost)
+
     def total_cost(self):
+        """
+        Calculates the total cost of a flip, which is the sum of the
+        heuristic function (forward cost) and the number of pancakes that
+        have been flipped (backward cost)
+        
+        Returns
+        -------
+        The total cost of a flip
+        """
         return self.heuristic() + self.backward_cost
     
-    # The heuristic function is defined by the number of stack positions
-    # for which the pancake at that position is not of adjacent size (+/- 1) to 
-    # the pancake below. Here, we also take the plate into consideration
-    # because we want to make sure that the stack goes from largest to
-    # smallest, starting from the plate
+
     def heuristic(self):
+        """
+        The heuristic function is defined by the number of stack positions
+        for which the pancake at that position is not of adjacent size (+/-
+        1) to the pancake below (specified in "Landmark Heuristics for the
+        Pancake Problem" by Malte Helmert.) Here, we also take the plate
+        into consideration because we want to make sure that the stack
+        goes from largest to smallest, starting from the plate.
+
+        Returns
+        -------
+        h_gap: integer
+            The heuristic of the current state
+        """
         h_gap = 0
         prev_pancake = self.state[0]
         for pancake in self.state[1:]:
@@ -32,9 +65,16 @@ class Node:
             prev_pancake = pancake
         return h_gap
     
-    # This class method allows us to flip a stack of pancakes at a given
-    # flip_depth. 
+
     def flip(self, flip_depth):
+        """
+        Flip a stack of pancakes at a given flip_depth. 
+
+        Args
+        ----
+        flip_depth: integer
+            The number of pancakes that will be flipped
+        """
         # We save this information so that the steps of flipping can be
         # printed out with the solution
         self.flip_depth = flip_depth
@@ -53,46 +93,98 @@ class Node:
         self.backward_cost += flip_depth
         logging.debug("After flipping: "), logging.debug(self.state)
 
-
-# Python has a Queue library that contains a priority queue, but I'm not
-# using it here because it doesn't has certain functions that check whether
-# if an element is already in the queue, or replace an element in the
-# queue. Both of these functions are needed to implement A*
+"""
+PriorityQueue Class
+-------------------
+Python has a Queue library that contains a priority queue, but I'm not
+using it here because it doesn't has certain functions that check whether
+if an element is already in the queue, or replace an element in the
+queue. Both of these functions are needed to implement A*.
+"""
 class PriorityQueue():
     def __init__(self):
-        self.heap = [] # The Heap is represented by a list
+        """
+        Creates a heap, which is represented by a Python list
+        """
+        self.heap = []
     
-    # To put a node onto the priority queue, push onto the heap. The order
-    # of the priority queue is determined by the total cost determined in
-    # the Node class. If two nodes have the same total cost, then the node
-    # that was first introduced has higher priority.
+
     def put(self, node):
+        """
+        To put a node onto the priority queue, push onto the heap. The
+        order of the priority queue is determined by the total cost
+        determined in the Node class (the smaller the higher priority). If
+        two nodes have the same total cost, then the node that was first
+        introduced has higher priority.
+
+        Args
+        ---
+        node: Node object
+        """
         heapq.heappush(self.heap, node)
         logging.debug("Priority Queue now contains: "), logging.debug(self.heap)
     
-    # To get the node with the least cost, pop from the heap.
-    def get(self):
-        return heapq.heappop(self.heap)
     
-    # Loop through the heap to see if an existing state is already in a
-    # node in the the priority queue. If this is the case, then return
-    # true. Otherwise, return false.
+    def get(self):
+        """
+        To get the node with the least cost, pop from the heap.
+
+        Returns
+        -------
+        top: Node object
+            Returns the top element of the min heap
+        """
+        top = heapq.heappop(self.heap);
+        return top
+    
+    
     def has(self, state):
+        """
+        Loop through the heap to see if an existing state is already in a
+        node in the the priority queue. If this is the case, then return
+        true. Otherwise, return false.
+
+        Args
+        ----
+        state: array
+            The state for which we are checking whether if it already
+            exists in the heap
+
+        Returns
+        -------
+        boolean
+            True if the state is already in the heap, false otherwise
+        """
         for node in self.heap:
             if node[2].state == state:
                 return True
         return False
     
-    # If a new node is lower in cost than an existing node in the priority
-    # queue, then replace the old node with the new node
+    
     def replace(self, new_node):
+        """
+        If a new node is lower in cost than an existing node in the priority
+        queue, then replace the old node with the new node.
+
+        Args
+        ----
+        new_node: Node object
+            The new node that would replace one already in the priority
+            queue should it have a lower total_cost
+        """
         for node in self.heap:
             if node[2].state == new_node[2].state:
                 if new_node[2].total_cost() < node[2].total_cost():
                     self.heap[self.heap.index(node)] = new_node
     
-    # Return True if heap is empty
+    
     def empty(self):
+        """
+        Returns
+        -------
+        boolean
+            returns True if the priority queue is empty, False otherwise
+        """
         return len(self.heap) == 0
 
 
@@ -157,10 +249,12 @@ def astar(initial_state):
             logging.debug("Top of the heap is "),
             logging.debug(frontier.heap[0][2].state)
 
-              
-# Parse through command line arguments, calls astar(), and print out steps
-# to the solution if one is found
+           
 def main():
+    """
+    Parse through command line arguments, calls astar(), and print out steps
+    to the solution if one is found
+    """
     # Setup parser and parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument("-v", "--verbose", 
