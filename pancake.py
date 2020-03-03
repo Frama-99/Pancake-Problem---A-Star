@@ -19,11 +19,14 @@ class Node:
 
         Args
         ----
-        state : array
+        state: array
             An arrangement of the stack of pancakes
 
         parent: Node object
             Parent of the current node
+
+        order_added: int
+            The number of nodes that have been added before this one
         """
         self.state = state
         self.parent = parent    # Keeps track of the parent of each node
@@ -97,8 +100,8 @@ class Node:
         flip_depth: integer
             The number of pancakes that will be flipped
         """
-        # We save this information so that the steps of flipping can be
-        # printed out with the solution
+        # We save this information as an attribute so that the depth of
+        # flip can be printed out with the solution
         self.flip_depth = flip_depth
         logging.debug("Before flipping: "), logging.debug(self.state)
 
@@ -114,6 +117,7 @@ class Node:
         # flip_depth)
         self.backward_cost += flip_depth
         logging.debug("After flipping: "), logging.debug(self.state)
+
 
 """
 PriorityQueue Class
@@ -243,6 +247,14 @@ class astar():
         self.order_added += 1
 
 
+    def verify(self):
+        # The largest number represents the plate and must be at the bottom.
+        for pancake in self.root.state:
+            if pancake > self.root.state[len(self.root.state) - 1]:
+                print("The plate (the largest number) must be at the bottom")
+                exit()
+
+
     def run(self):
         """
         Runs the A* search
@@ -350,15 +362,10 @@ def main():
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
-    # The largest number represents the plate and must be at the bottom.
-    for pancake in args.stack:
-        if pancake > args.stack[len(args.stack) - 1]:
-            print("The plate (the largest number) must be at the bottom")
-            exit()
-
+    AStar = astar(args.stack)
+    AStar.verify()
 
     timer_start = timeit.default_timer()
-    AStar = astar(args.stack)
     AStar.run()
     timer_stop = timeit.default_timer()
 
