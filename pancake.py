@@ -220,7 +220,11 @@ class PriorityQueue():
         """
         return len(self.heap) == 0
 
-
+"""
+astar Class
+-----------
+Verifies inputs, runs, and prints the results of an A* algorithm.
+"""
 class astar():
     def __init__(self, initial_state):
         """
@@ -248,11 +252,18 @@ class astar():
 
 
     def verify(self):
-        # The largest number represents the plate and must be at the bottom.
-        for pancake in self.root.state:
-            if pancake > self.root.state[len(self.root.state) - 1]:
-                print("The plate (the largest number) must be at the bottom")
+        """
+        Ensure that the largest number represents the plate and must be at
+        the bottom, and that the input contains only consecutive integers.
+        """
+        stack = self.root.state
+        for pancake in stack:
+            if pancake > stack[-1]:
+                print("Error: The plate (the largest number) must be at the bottom.")
                 exit()
+        if sorted(stack) != list(range(min(stack), max(stack) + 1)):
+            print("Error: The stack of pancakes should yield contain consecutive numbers when sorted.")
+            exit()
 
 
     def run(self):
