@@ -188,66 +188,68 @@ class PriorityQueue():
         return len(self.heap) == 0
 
 
-def astar(initial_state):
-    length = len(initial_state)
-    visited = []      # Keeps track of the states that have been visited
-    order_added = 1   # Keeps track of the order in which a given node is added
-    frontier = PriorityQueue()  # The frontier is a priority queue
-    
-    # First, put the start in the priority queue
-    root = Node(initial_state, None) # The root no parents
-    frontier.put((root.total_cost(), order_added, root))
-    order_added += 1
-
-
-    while True:
-        # If our frontier is empty and we haven't yet encountered a goal
-        # state, that means there is no solution
-        if frontier.empty():
-            return False
+class astar():
+    def __init__(self, initial_state):
+        self.length = len(initial_state)
+        self.visited = []      # Keeps track of the states that have been visited
+        self.order_added = 0   # Keeps track of the order in which a given node is added
+        self.frontier = PriorityQueue()  # The frontier is a priority queue
         
-        # Pop the priority queue to choose the node with the least cost
-        curr_node = frontier.get()[2]
+        # First, put the start in the priority queue
+        self.root = Node(initial_state, None) # The root no parents
+        self.frontier.put((self.root.total_cost(), self.order_added, self.root))
+        self.order_added += 1
 
-        # Add the state to the list of states that have been visited
-        visited.append(curr_node.state)
 
-        # If the heuristic function returns 0, then we are at the goal
-        if curr_node.heuristic() == 0:
-            return curr_node
-        
-        # We add every possible node that the current node can reach to the
-        # frontier. Each children represents what the stack would look like
-        # with each possible flip. We cannot have a flip depth of 1,
-        # because that's pointless. We cannot have a flip of depth length, since
-        # the last element is the plate itself. 
-        for flip_depth in range(2, length):
-            child = copy.deepcopy(curr_node)    # Make a deep copy
-            child.flip(flip_depth)
-            child.parent = curr_node
+    def run(self):
+        while True:
+            # If our frontier is empty and we haven't yet encountered a goal
+            # state, that means there is no solution
+            if self.frontier.empty():
+                return False
             
-            # If the child contains a state that has not been visit, and
-            # the frontier does not already have the child's state, then
-            # add the child to the frontier
-            if (child.state not in visited) and (not frontier.has(child.state)):
-                # Each node is added to the priority queue as a tuple that
-                # contains the child's total cost (first priority), the
-                # order in which it was added (second priority), and the
-                # child itself.
-                frontier.put((child.total_cost(), order_added, child))
-                order_added += 1
+            # Pop the priority queue to choose the node with the least cost
+            curr_node = self.frontier.get()[2]
+
+            # Add the state to the list of states that have been visited
+            self.visited.append(curr_node.state)
+
+            # If the heuristic function returns 0, then we are at the goal
+            if curr_node.heuristic() == 0:
+                return curr_node
             
-            # If the frontier has the child's state but the child has a
-            # lower cost to get to that state, replace the existing node in
-            # the frontier with the child
-            elif frontier.has(child.state):
-                frontier.replace((child.total_cost(), order_added, child))
-                order_added += 1
-        
-        # Print out debugging info only if the heap is not empty
-        if not frontier.empty():
-            logging.debug("Top of the heap is "),
-            logging.debug(frontier.heap[0][2].state)
+            # We add every possible node that the current node can reach to
+            # the frontier. Each children represents what the stack would
+            # look like with each possible flip. We cannot have a flip
+            # depth of 1, because that's pointless. We cannot have a flip
+            # of depth length, since the last element is the plate itself. 
+            for flip_depth in range(2, self.length):
+                child = copy.deepcopy(curr_node)    # Make a deep copy
+                child.flip(flip_depth)
+                child.parent = curr_node
+                
+                # If the child contains a state that has not been visit, and
+                # the frontier does not already have the child's state, then
+                # add the child to the frontier
+                if (child.state not in self.visited) and (not self.frontier.has(child.state)):
+                    # Each node is added to the priority queue as a tuple that
+                    # contains the child's total cost (first priority), the
+                    # order in which it was added (second priority), and the
+                    # child itself.
+                    self.frontier.put((child.total_cost(), self.order_added, child))
+                    self.order_added += 1
+                
+                # If the frontier has the child's state but the child has a
+                # lower cost to get to that state, replace the existing node in
+                # the frontier with the child
+                elif self.frontier.has(child.state):
+                    self.frontier.replace((child.total_cost(), self.order_added, child))
+                    self.order_added += 1
+            
+            # Print out debugging info only if the heap is not empty
+            if not self.frontier.empty():
+                logging.debug("Top of the heap is "),
+                logging.debug(self.frontier.heap[0][2].state)
 
            
 def main():
@@ -286,7 +288,8 @@ def main():
     # Solution here is only the final node and does not contain any
     # information about the steps. However, this node contains information
     # about its parent and we can trace back.
-    solution = astar(args.stack)
+    AStar = astar(args.stack)
+    solution = AStar.run()
     
     if solution == False:
         print("No solution found")
