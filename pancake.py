@@ -277,36 +277,39 @@ class astar():
                 self.solution = curr_node
                 return
             
-            # We add every possible node that the current node can reach to
-            # the frontier. Each children represents what the stack would
-            # look like after each possible flip. We cannot have a flip
-            # depth of 1, because that's pointless. We cannot have a flip
-            # of depth length, since the last element is the plate itself. 
-            for flip_depth in range(2, self.length):
-                child = copy.deepcopy(curr_node)
-                child.flip(flip_depth)
-                child.parent = curr_node
-                child.order_added = self.order_added
-                
-                # If the child contains a state that has not been visited,
-                # and the frontier does not already have the child's state,
-                # then add the child to the frontier
-                if (child.state not in self.visited) and (not self.frontier.has(child.state)):
-                    self.frontier.put(child)
-                
-                # If the frontier has the child's state but the child has a
-                # lower cost to get to that state, replace the existing node in
-                # the frontier with the child
-                elif self.frontier.has(child.state):
-                    self.frontier.replace(child)
-                
-                self.order_added += 1
+            self.expand_frontier(curr_node)
             
             # Print out debugging info only if the heap is not empty
             if not self.frontier.empty():
                 logging.debug("Top of the heap is "),
                 logging.debug(self.frontier.heap[0].state)
 
+
+    def expand_frontier(self, curr_node):
+        # We add every possible node that the current node can reach to
+        # the frontier. Each children represents what the stack would
+        # look like after each possible flip. We cannot have a flip
+        # depth of 1, because that's pointless. We cannot have a flip
+        # of depth length, since the last element is the plate itself. 
+        for flip_depth in range(2, self.length):
+            child = copy.deepcopy(curr_node)
+            child.flip(flip_depth)
+            child.parent = curr_node
+            child.order_added = self.order_added
+            
+            # If the child contains a state that has not been visited,
+            # and the frontier does not already have the child's state,
+            # then add the child to the frontier
+            if (child.state not in self.visited) and (not self.frontier.has(child.state)):
+                self.frontier.put(child)
+            
+            # If the frontier has the child's state but the child has a
+            # lower cost to get to that state, replace the existing node in
+            # the frontier with the child
+            elif self.frontier.has(child.state):
+                self.frontier.replace(child)
+            
+            self.order_added += 1
 
     def print_solution(self):
         """
