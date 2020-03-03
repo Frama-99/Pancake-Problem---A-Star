@@ -37,11 +37,11 @@ well as the results of each flip, use the flags `-v` or `--verbose`.
 The A* search uses a priority queue that stores a list of potential nodes
 to be visited (to be clear, a node represents a path to a state. This means
 that there can be multiple nodes for a given state). Each node is added to
-the priority queue as a tuple that contains the its total cost (first
-priority), the order in which it was added (second priority), and the
-node itself. The order of the priority queue is first determined by the
-total cost. If two nodes have the same total cost, then the node that was
-first introduced has higher priority.
+the priority queue with its total cost as first priority, and the order in
+which it was added as second priority. This means that the order of the
+priority queue is first determined by the total cost. If two nodes have the
+same total cost, then the node that was first introduced has higher
+priority.
 
 The priority queue is constructed using a python heap.
 
@@ -84,6 +84,8 @@ different variations of the backward cost.
 ## References
 * https://stackoverflow.com/questions/18181818/python-priority-queue-checking-to-see-if-item-exists-without-looping
 * Python documentation pages
+* "Landmark Heuristics for the Pancake Problem" by Malte Helmert, pdf found
+  in this directory.
 
 ## Author
 Jiayi (Frank) Ma
