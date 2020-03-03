@@ -13,7 +13,7 @@ multiple nodes for one given state. However, there are no two nodes with
 the same state and the same parent.
 """
 class Node: 
-    def __init__(self, state, parent):
+    def __init__(self, state, parent, order_added):
         """
         Creates a new Node Object
 
@@ -28,7 +28,15 @@ class Node:
         self.state = state
         self.parent = parent    # Keeps track of the parent of each node
         self.backward_cost = 0
+        self.order_added = order_added
     
+
+    def __lt__(self, other):
+        if self.total_cost() != other.total_cost():
+            return self.total_cost() < other.total_cost()
+        else:
+            return self.order_added < other.order_added
+
 
     def total_cost(self):
         """
@@ -156,7 +164,7 @@ class PriorityQueue():
             True if the state is already in the heap, false otherwise
         """
         for node in self.heap:
-            if node[2].state == state:
+            if node.state == state:
                 return True
         return False
     
@@ -173,8 +181,8 @@ class PriorityQueue():
             queue should it have a lower total_cost
         """
         for node in self.heap:
-            if node[2].state == new_node[2].state:
-                if new_node[2].total_cost() < node[2].total_cost():
+            if node.state == new_node.state:
+                if new_node.total_cost() < node.total_cost():
                     self.heap[self.heap.index(node)] = new_node
     
     
@@ -190,14 +198,27 @@ class PriorityQueue():
 
 class astar():
     def __init__(self, initial_state):
-        self.length = len(initial_state)
-        self.visited = []      # Keeps track of the states that have been visited
-        self.order_added = 0   # Keeps track of the order in which a given node is added
-        self.frontier = PriorityQueue()  # The frontier is a priority queue
+        """
+        Creates a new instance of the A* search algorithm.
+
+        Args
+        ----
+        initial_state: array
+            The initial state is given by user input. It is the starting
+            of the pancake problem.
+        """
         
-        # First, put the start in the priority queue
-        self.root = Node(initial_state, None) # The root no parents
-        self.frontier.put((self.root.total_cost(), self.order_added, self.root))
+        self.length = len(initial_state)
+        # Keeps track of the states that have been visited
+        self.visited = []     
+        # Keeps track of the order in which a given node is added
+        self.order_added = 0   
+        # The frontier is a priority queue
+        self.frontier = PriorityQueue()
+
+        # First, put the starting configuration in the priority queue
+        self.root = Node(initial_state, None, self.order_added)
+        self.frontier.put(self.root)
         self.order_added += 1
 
 
@@ -209,7 +230,7 @@ class astar():
                 return False
             
             # Pop the priority queue to choose the node with the least cost
-            curr_node = self.frontier.get()[2]
+            curr_node = self.frontier.get()
 
             # Add the state to the list of states that have been visited
             self.visited.append(curr_node.state)
@@ -227,6 +248,7 @@ class astar():
                 child = copy.deepcopy(curr_node)    # Make a deep copy
                 child.flip(flip_depth)
                 child.parent = curr_node
+                child.order_added = self.order_added
                 
                 # If the child contains a state that has not been visit, and
                 # the frontier does not already have the child's state, then
@@ -236,20 +258,20 @@ class astar():
                     # contains the child's total cost (first priority), the
                     # order in which it was added (second priority), and the
                     # child itself.
-                    self.frontier.put((child.total_cost(), self.order_added, child))
-                    self.order_added += 1
+                    self.frontier.put(child)
                 
                 # If the frontier has the child's state but the child has a
                 # lower cost to get to that state, replace the existing node in
                 # the frontier with the child
                 elif self.frontier.has(child.state):
-                    self.frontier.replace((child.total_cost(), self.order_added, child))
-                    self.order_added += 1
+                    self.frontier.replace(child)
+                
+                self.order_added += 1
             
             # Print out debugging info only if the heap is not empty
             if not self.frontier.empty():
                 logging.debug("Top of the heap is "),
-                logging.debug(self.frontier.heap[0][2].state)
+                logging.debug(self.frontier.heap[0].state)
 
            
 def main():
