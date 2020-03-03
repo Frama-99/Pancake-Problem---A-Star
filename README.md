@@ -15,11 +15,13 @@ number.
 
 Run `python ./pancake.py` followed by **a list of integers, separated by a space** 
 to customize input. Note that `pancake.py` will halt with an error if
-the plate (the largest number) is not at the bottom (to the right), or if
-values other than integers are provided. For example:
+the plate (the largest number) is not at the bottom (to the right), if
+values other than integers are provided, or if the solution does not
+contain consecutive integers. For example:
 * `3 4 2 5 1 6` is a valid input.
 * `5 3 4 6` is a valid input.
 * `6` is a valid input.
+* `5 4 3 7` is *not* a valid input.
 * `3 4 2 6 5 1` is *not* a valid input.
 * `3.0 4 2 5 1 6` is *not* a valid input.
 

@@ -277,6 +277,8 @@ class astar():
                 self.solution = curr_node
                 return
             
+            # Add every possible node that the current node can reach to
+            # the frontier.
             self.expand_frontier(curr_node)
             
             # Print out debugging info only if the heap is not empty
@@ -286,11 +288,15 @@ class astar():
 
 
     def expand_frontier(self, curr_node):
-        # We add every possible node that the current node can reach to
-        # the frontier. Each children represents what the stack would
-        # look like after each possible flip. We cannot have a flip
-        # depth of 1, because that's pointless. We cannot have a flip
-        # of depth length, since the last element is the plate itself. 
+        """
+        We add every possible node that the current node can reach to the
+        frontier. Each children represents what the stack would look like
+        after each possible flip. 
+        
+        We cannot have a flip depth of 1, because that's pointless. We
+        cannot have a flip of depth length, since the last element is the
+        plate itself. 
+        """
         for flip_depth in range(2, self.length):
             child = copy.deepcopy(curr_node)
             child.flip(flip_depth)
@@ -322,9 +328,10 @@ class astar():
             print("No solution found")
         else:
             solution_steps = []
-            while self.solution != None: # Stop when we reach the start
-                solution_steps.append(self.solution)
-                self.solution = self.solution.parent
+            curr_node = self.solution
+            while curr_node != None: # Stop when we reach the start
+                solution_steps.append(curr_node)
+                curr_node = curr_node.parent
             
             # If there is only one state in our solution, then the user input
             # is already the solution
@@ -365,6 +372,8 @@ def main():
     if args.verbose:
         logging.basicConfig(level=logging.DEBUG)
 
+
+    # Finally, instantiate astar() object and run search
     AStar = astar(args.stack)
     AStar.verify()
 
