@@ -32,6 +32,20 @@ class Node:
     
 
     def __lt__(self, other):
+        """
+        When two nodes are compared, their total cost takes first priority,
+        and the order in which it was added takes second priority. The
+        latter can never be the same between two nodes, so there is no need
+        for a third priority. 
+        
+        This comparison operator will be used when nodes are added to the
+        priority queue.
+
+        Args
+        ----
+        other: Node object
+            Another node object
+        """
         if self.total_cost() != other.total_cost():
             return self.total_cost() < other.total_cost()
         else:
@@ -117,6 +131,13 @@ class PriorityQueue():
         self.heap = []
     
 
+    def __str__(self):
+        """
+        Printing for debugging
+        """
+        return str([node.state for node in self.heap])
+    
+
     def put(self, node):
         """
         To put a node onto the priority queue, push onto the heap. The
@@ -130,7 +151,7 @@ class PriorityQueue():
         node: Node object
         """
         heapq.heappush(self.heap, node)
-        logging.debug("Priority Queue now contains: "), logging.debug(self.heap)
+        logging.debug("Priority Queue now contains: "), logging.debug(self)
     
     
     def get(self):
@@ -199,7 +220,8 @@ class PriorityQueue():
 class astar():
     def __init__(self, initial_state):
         """
-        Creates a new instance of the A* search algorithm.
+        Creates a new instance of the A* search algorithm on the default or
+        user provided stack of pancakes. 
 
         Args
         ----
@@ -207,7 +229,6 @@ class astar():
             The initial state is given by user input. It is the starting
             of the pancake problem.
         """
-        
         self.length = len(initial_state)
         # Keeps track of the states that have been visited
         self.visited = []     
@@ -223,11 +244,15 @@ class astar():
 
 
     def run(self):
+        """
+        Runs the A* search
+        """
         while True:
             # If our frontier is empty and we haven't yet encountered a goal
             # state, that means there is no solution
             if self.frontier.empty():
-                return False
+                self.solution = False
+                return
             
             # Pop the priority queue to choose the node with the least cost
             curr_node = self.frontier.get()
@@ -237,27 +262,24 @@ class astar():
 
             # If the heuristic function returns 0, then we are at the goal
             if curr_node.heuristic() == 0:
-                return curr_node
+                self.solution = curr_node
+                return
             
             # We add every possible node that the current node can reach to
             # the frontier. Each children represents what the stack would
-            # look like with each possible flip. We cannot have a flip
+            # look like after each possible flip. We cannot have a flip
             # depth of 1, because that's pointless. We cannot have a flip
             # of depth length, since the last element is the plate itself. 
             for flip_depth in range(2, self.length):
-                child = copy.deepcopy(curr_node)    # Make a deep copy
+                child = copy.deepcopy(curr_node)
                 child.flip(flip_depth)
                 child.parent = curr_node
                 child.order_added = self.order_added
                 
-                # If the child contains a state that has not been visit, and
-                # the frontier does not already have the child's state, then
-                # add the child to the frontier
+                # If the child contains a state that has not been visited,
+                # and the frontier does not already have the child's state,
+                # then add the child to the frontier
                 if (child.state not in self.visited) and (not self.frontier.has(child.state)):
-                    # Each node is added to the priority queue as a tuple that
-                    # contains the child's total cost (first priority), the
-                    # order in which it was added (second priority), and the
-                    # child itself.
                     self.frontier.put(child)
                 
                 # If the frontier has the child's state but the child has a
@@ -273,11 +295,42 @@ class astar():
                 logging.debug("Top of the heap is "),
                 logging.debug(self.frontier.heap[0].state)
 
+
+    def print_solution(self):
+        """
+        Prints result of A* search. The solution here is only the final
+        node and does not contain any information about the steps. However,
+        this node contains information about its parent and we can trace
+        back.
+        """
+        if self.solution == False:
+            print("No solution found")
+        else:
+            solution_steps = []
+            while self.solution != None: # Stop when we reach the start
+                solution_steps.append(self.solution)
+                self.solution = self.solution.parent
+            
+            # If there is only one state in our solution, then the user input
+            # is already the solution
+            if len(solution_steps) == 1:
+                print("Your stack of pancakes is already sorted!")
+                exit()
+            
+            # Reverse the steps because it's backwards
+            solution_steps.reverse()
+            
+            # Finally, print the steps to get to the solution
+            print("To sort the stack", solution_steps[0].state, "do the following:")
+            for step in range(1, len(solution_steps)):
+                print("Step", step, ": Flip the top", 
+                    solution_steps[step].flip_depth,
+                    "pancakes to get", solution_steps[step].state)
+
            
 def main():
     """
-    Parse through command line arguments, calls astar(), and print out steps
-    to the solution if one is found
+    Parse through command line arguments, and calls astar() methods
     """
     # Setup parser and parse arguments
     parser = argparse.ArgumentParser()
@@ -303,44 +356,15 @@ def main():
             print("The plate (the largest number) must be at the bottom")
             exit()
 
-    # Start timer
-    start = timeit.default_timer()
 
-    # Run a star on the default or user provided stack of pancakes.
-    # Solution here is only the final node and does not contain any
-    # information about the steps. However, this node contains information
-    # about its parent and we can trace back.
+    timer_start = timeit.default_timer()
     AStar = astar(args.stack)
-    solution = AStar.run()
-    
-    if solution == False:
-        print("No solution found")
-    else:
-        solution_steps = []
-        while solution != None: # Stop when we reach the start
-            solution_steps.append(solution)
-            solution = solution.parent
-        
-        # If there is only one state in our solution, then the user input
-        # is already the solution
-        if len(solution_steps) == 1:
-            print("Your stack of pancakes is already sorted!")
-            exit()
-        
-        # Reverse the steps because it's backwards
-        solution_steps.reverse()
-        
-        # Finally, print the steps to get to the solution
-        print("To sort the stack", solution_steps[0].state, "do the following:")
-        for step in range(1, len(solution_steps)):
-            print("Step", step, ": Flip the top", 
-                  solution_steps[step].flip_depth,
-                  "pancakes to get", solution_steps[step].state)
-    
-    # Stop the timer and print execution time
-    stop = timeit.default_timer()
-    print("Execution Time:", round(stop - start, 2), "s")  
+    AStar.run()
+    timer_stop = timeit.default_timer()
 
+    AStar.print_solution()
+    print("Execution Time:", round(timer_stop - timer_start, 2), "s") 
+    
 
 if __name__ == '__main__':
     main()
